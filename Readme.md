@@ -2,6 +2,9 @@
 
 A Windows Forms application that generates PNG images from text input. Each line of text is rendered as a separate PNG image with customizable settings including font, colors, and size.
 
+![Application Screenshot](screenshots/main-window.png)
+![Example Label](screenshots/label_example.png)
+
 ## Features
 
 - **Batch Processing**: Convert multiple text lines to PNG images in one go
