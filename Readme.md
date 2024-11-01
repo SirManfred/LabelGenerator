@@ -2,15 +2,19 @@
 
 A Windows Forms application that generates PNG images from text input. Each line of text is rendered as a separate PNG image with customizable settings including font, colors, and size.
 
-| Application Screenshot |
-|:--:|
-| ![Application Screenshot](screenshots/main-window.png) |
+<div align="center">
+  
+  | Application Screenshot |
+  |:--:|
+  | ![Application Screenshot](screenshots/main-window.png) |
+  
+  | Example Labels |
+  |:--:|
+  | ![Example Label](screenshots/Label_LoremIpsum.png)  |
+  | ![Example Label](screenshots/Label_DolorsitAmet.png) |
+  | ![Example Label](screenshots/Label_Consectetur.png) |
 
-| Example Labels |
-|:--:|
-| ![Example Label](screenshots/Label_LoremIpsum.png)  |
-| ![Example Label](screenshots/Label_DolorsitAmet.png) |
-| ![Example Label](screenshots/Label_Consectetur.png) |
+</div>
 
 ## Features
 
