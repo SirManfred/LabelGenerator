@@ -9,6 +9,7 @@ using System.Text;
 using System.Linq;
 using System.Drawing.Text;
 using LabelGenerator.Properties;
+using System.Drawing.Drawing2D;
 
 
 namespace SVG2PNG
@@ -398,7 +399,30 @@ namespace SVG2PNG
             return $"{prefix}{cleanName}{numberSuffix}.png";
         }
 
+        private async Task ProcessLines(List<string> lines, int width, int height, CancellationToken cancellationToken)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
+                string text = lines[i].Trim();
+                lblCurrentItem.Text = $"Processing: {text}";
+
+                try
+                {
+                    string outputFileName = Path.Combine(selectedOutputPath, GenerateFileName(text, i));
+                    await CreatePngDirectly(text, outputFileName, width, height);
+
+                    progressBar.Value = i + 1;
+                    lblStatus.Text = $"Processed {i + 1} of {lines.Count}";
+                    Application.DoEvents();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Error processing '{text}': {ex.Message}");
+                }
+            }
+        }
         private async Task ProcessLines(List<string> lines, int width, int height, CancellationToken cancellationToken)
         {
             for (int i = 0; i < lines.Count; i++)
@@ -524,6 +548,67 @@ namespace SVG2PNG
                     text-anchor='middle'
                     dominant-baseline='middle'>{text}</text>
             </svg>".Trim();
+        }
+
+        private async Task CreatePngDirectly(string text, string outputPath, int width, int height)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    using (var bitmap = new Bitmap(width, height))
+                    {
+                        using (var graphics = Graphics.FromImage(bitmap))
+                        {
+                            // Set up high quality rendering
+                            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                            graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                            graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                            // Clear background (optional - make transparent)
+                            graphics.Clear(Color.Transparent);
+
+                            // Create brush for text
+                            Brush textBrush;
+                            if (chkUseGradient.Checked)
+                            {
+                                textBrush = new LinearGradientBrush(
+                                    new Point(0, 0),
+                                    new Point(0, height),
+                                    btnColorStart.BackColor,
+                                    btnColorEnd.BackColor);
+                            }
+                            else
+                            {
+                                textBrush = new SolidBrush(btnColorStart.BackColor);
+                            }
+
+                            // Use selected font
+                            using (var font = new Font(cmbFonts.SelectedItem?.ToString() ?? "Arial", calculatedFontSize, FontStyle.Bold))
+                            {
+                                // Measure string to center it
+                                var textSize = graphics.MeasureString(text, font);
+                                float x = (width - textSize.Width) / 2;
+                                float y = (height - textSize.Height) / 2;
+
+                                // Draw the text
+                                graphics.DrawString(text, font, textBrush, x, y);
+                            }
+
+                            // Clean up brush
+                            textBrush.Dispose();
+
+                            // Save with transparent background
+                            bitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Error creating PNG: {ex.Message}");
+                }
+            });
         }
 
         private string ColorToHex(Color color)
